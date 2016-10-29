@@ -5,14 +5,14 @@ struct JSON_checkerT {
 		push(MODE_DONE);
 	}
 
-	constexpr bool parse(const char * js, unsigned long len)  {
+	constexpr bool operator()(const char * js, unsigned long len)  {
       while (len--) {
-          const int next_char = *js;
+          int next_char = *js;
           js++;
           if (next_char <= 0) { break; }
-          if (!JSON_checker_char(next_char)) { return false;}
+          if (!check(next_char)) { return false;}
       }
-      return JSON_checker_done();
+      return check_done();
     }
 
 private:
@@ -106,119 +106,138 @@ private:
     /*null   N3*/ {__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,OK,__,__,__,__,__,__,__,__},
     };
 
-	constexpr bool push(const modes mode)  {
-		if (++top >= DEPTH) { return false; }
+	constexpr bool push(const modes mode) {
+		if (++top >= DEPTH) {
+			return false;
+		}
 		stack[top] = mode;
 		return true;
 	}
 
 	constexpr bool pop(const modes mode) {
-		if ((top < 0) || (stack[top] != mode) ) { return false; }
+		if ((top < 0) || (stack[top] != mode)) {
+			return false;
+		}
 		--top;
 		return true;
 	}
 
-    constexpr bool JSON_checker_char(const int next_char) {
-        classes next_class {};
-        states next_state {};
+	constexpr bool check(const int next_char) {
+		classes next_class { };
+		states next_state { };
 
-        /*  Determine the character's class. */
-        if (next_char >= 128) {
-            next_class = C_ETC;
-        } else if (next_char >= 0) {
-            next_class = ascii_class[next_char];
-            if (static_cast<int>(next_class) <= static_cast<int>(__)) {
-                return false;
-            }
-        } else return false;
+		/*  Determine the character's class. */
+		if (next_char >= 128) {
+			next_class = C_ETC;
+		} else if (next_char >= 0) {
+			next_class = ascii_class[next_char];
+			if (static_cast<int>(next_class) <= static_cast<int>(__)) {
+				return false;
+			}
+		} else
+			return false;
 
-        /*	 Get the next state from the state transition table. */
-        next_state = state_transition_table[state][next_class];
-        if (next_state >= 0) {
-            state = next_state;
-        } else {
-            /* Or perform one of the actions. */
-            switch (next_state) {
-            /* empty } */
-            case -9:
-                if (!pop(MODE_KEY)) { return false; }
-                state = OK;
-                break;
+		/*	 Get the next state from the state transition table. */
+		next_state = state_transition_table[static_cast<int>(state)][next_class];
+		if (next_state >= 0) {
+			state = next_state;
+		} else {
+			/* Or perform one of the actions. */
+			switch (next_state) {
+				/* empty } */
+				case -9:
+				if (!pop(MODE_KEY)) {
+					return false;
+				}
+				state = OK;
+				break;
 
-                /* } */case -8:
-                if (!pop(MODE_OBJECT)) { return false; }
-                state = OK;
-                break;
+				/* } */case -8:
+				if (!pop(MODE_OBJECT)) {
+					return false;
+				}
+				state = OK;
+				break;
 
-                /* ] */case -7:
-                if (!pop(MODE_ARRAY)) { return false; }
-                state = OK;
-                break;
+				/* ] */case -7:
+				if (!pop(MODE_ARRAY)) {
+					return false;
+				}
+				state = OK;
+				break;
 
-                /* { */case -6:
-                if (!push(MODE_KEY)) { return false; }
-                state = OB;
-                break;
+				/* { */case -6:
+				if (!push(MODE_KEY)) {
+					return false;
+				}
+				state = OB;
+				break;
 
-                /* [ */case -5:
-                if (!push(MODE_ARRAY)) { return false; }
-                state = AR;
-                break;
+				/* [ */case -5:
+				if (!push(MODE_ARRAY)) {
+					return false;
+				}
+				state = AR;
+				break;
 
-                /* " */case -4:
-                switch (stack[top]) {
-                case MODE_KEY:
-                    state = CO;
-                    break;
-                case MODE_ARRAY:
-                case MODE_OBJECT:
-                    state = OK;
-                    break;
-                default:
-                    return false;
-                }
-                break;
+				/* " */case -4:
+				switch (stack[top]) {
+				case MODE_KEY:
+					state = CO;
+					break;
+				case MODE_ARRAY:
+				case MODE_OBJECT:
+					state = OK;
+					break;
+				default:
+					return false;
+				}
+				break;
 
-                /* , */case -3:
-                switch (stack[top]) {
-                case MODE_OBJECT:
-                    /* A comma causes a flip from object mode to key mode. */
-                    if (!pop(MODE_OBJECT) || !push(MODE_KEY)) { return false; }
-                    state = KE;
-                    break;
-                case MODE_ARRAY:
-                    state = VA;
-                    break;
-                default:
-                    return false;
-                }
-                break;
+				/* , */case -3:
+				switch (stack[top]) {
+				case MODE_OBJECT:
+					/* A comma causes a flip from object mode to key mode. */
+					if (!pop(MODE_OBJECT) || !push(MODE_KEY)) {
+						return false;
+					}
+					state = KE;
+					break;
+				case MODE_ARRAY:
+					state = VA;
+					break;
+				default:
+					return false;
+				}
+				break;
 
-                /* : */case -2:
-                /* A colon causes a flip from key mode to object mode. */
-                if (!pop(MODE_KEY) || !push(MODE_OBJECT)) { return false; }
-                state = VA;
-                break;
-                /* Bad action. */
-            default:
-                return false;
-            }
-        }
-        return true;
-    }
+				/* : */case -2:
+				/* A colon causes a flip from key mode to object mode. */
+				if (!pop(MODE_KEY) || !push(MODE_OBJECT)) {
+					return false;
+				}
+				state = VA;
+				break;
+				/* Bad action. */
+			default:
+				return false;
+			}
+		}
+		return true;
+	}
 
-	constexpr bool JSON_checker_done() {
+	constexpr bool check_done() {
 		return (state == OK) && (pop(MODE_DONE));
 	}
 
 	states state;
 	unsigned int top;
-	modes stack[DEPTH] {};
+	modes stack[DEPTH] { };
 };
 
 constexpr bool operator""_jsonchecker(const char* js, unsigned long len) {
 	JSON_checkerT<20> jc;
-  	return jc.parse(js,len);
+	return jc(js, len);
 }
 
 /* compile time unit tests */
