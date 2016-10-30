@@ -46,7 +46,7 @@ private:
   /* This array maps the 128 ASCII characters into character classes.
    The remaining Unicode characters should be mapped to C_ETC.
    Non-whitespace control characters are errors. */
-  static constexpr const classes ascii_class[128] = {
+    const classes ascii_class[128] = {
           _1, _1, _1, _1, _1, _1, _1, _1, _1, C_WHITE, C_WHITE, _1, _1, C_WHITE, _1, _1,
           _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1, _1,
 
@@ -71,7 +71,7 @@ private:
      and returns either a new state or an action. An action is represented as a
      negative number. A JSON text is accepted if at the end of the text the
      state is OK and if the mode is MODE_DONE.*/
-    static constexpr states state_transition_table[NR_STATES][NR_CLASSES] = {
+     states state_transition_table[NR_STATES][NR_CLASSES] = {
      /*                 white                                      1-9                                   ABCDF  etc
                  space |  {  }  [  ]  :  ,  "  \  /  +  -  .  0  |  a  b  c  d  e  f  l  n  r  s  t  u  |  E  |*/
     /*start  GO*/ {GO,GO,_6,__,_5,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__,__},
