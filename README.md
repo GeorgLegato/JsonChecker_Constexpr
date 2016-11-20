@@ -16,7 +16,7 @@ static_assert (V1,"Fail V1");
 #endif
 
 constexpr auto V3 { "{}"_jsonterminator };
-static_assert (V3,"Fail V3");
+static_assert (V3,"Fail V3");  // not necessary actually, on parse error it throws.
 
 int main(){
 	const auto real_life_snippet1 { "{}"_jsonterminator } ; // compiles
