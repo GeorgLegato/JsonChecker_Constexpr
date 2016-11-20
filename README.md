@@ -11,17 +11,18 @@ constexpr auto V1 { ( "{}"_jsonvalidator ) };
 static_assert (V1,"Fail V1");
 
 #if __has_include(<optional>)
-	constexpr auto V2 { "{}"_jsonoptionator };
-	static_assert (V2,"Fail V2");
+    constexpr auto V2 { "{}"_jsonoptionator };
+    static_assert (V2,"Fail V2");
 #endif
 
 constexpr auto V3 { "{}"_jsonterminator };
 static_assert (V3,"Fail V3");
 
-ìnt main(){
-  const auto real_life_snippet1 { "{}"_jsonterminator } ; // compiles
-  const auto real_life_snippet2 { "{}"_jsonterminator } ; // stopps
-  return 0;
+int main(){
+	const auto real_life_snippet1 { "{}"_jsonterminator } ; // compiles
+	const auto real_life_snippet2 { "{}"_jsonterminator } ; // stopps
+	return 0;
 }
+
 
 ````
