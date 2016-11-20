@@ -20,7 +20,7 @@ static_assert (V3,"Fail V3");  // not necessary actually, on parse error it thro
 
 int main(){
 	const auto real_life_snippet1 { "{}"_jsonterminator } ; // compiles
-	const auto real_life_snippet2 { "{}"_jsonterminator } ; // stopps
+	const auto real_life_snippet2 { "{bla}"_jsonterminator } ; // stopps
 	return 0;
 }
 
